@@ -1,9 +1,19 @@
-function component() {
-    const element = document.createElement('canvas')
-    element.id = 'glCanvas'
-    element.width = 640
-    element.height = 480
-    return element;
+import App from './webgl/App'
+
+
+function createCanvas() {
+    const canvas = document.createElement('canvas')
+    canvas.id = 'glCanvas'
+    canvas.width = 640
+    canvas.height = 480
+    canvas.style = "border: 1px solid red;"
+    return canvas;
 }
 
-document.body.appendChild(component());
+document.body.appendChild(createCanvas());
+
+global.canvas = document.getElementById('glCanvas')
+global.gl = canvas.getContext('experimental-webgl')
+
+var app = new App()
+app.render()
