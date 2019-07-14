@@ -55,15 +55,15 @@ class App {
 
         this.transformLocation = gl.getUniformLocation(program, 'u_transform')
 
-        this.alpha = 0
+        this.angle = 0
 
         gl.clearColor(0, 0, 0, 1)
     }
 
     update() {
-        this.alpha += Math.PI / 180;
-        (this.alpha >= Math.PI * 2) && (this.alpha -= Math.PI * 2);
-        var rotateMat = Utils.rotationMatrix(0, 0, 1, this.alpha)
+        this.angle += Math.PI / 180;
+        (this.angle >= Math.PI * 2) && (this.angle -= Math.PI * 2);
+        var rotateMat = Utils.rotationMatrix(0, 0, 1, this.angle)
         gl.uniformMatrix4fv(this.transformLocation, false, rotateMat)
 
     }
