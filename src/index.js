@@ -16,4 +16,11 @@ global.canvas = document.getElementById('glCanvas')
 global.gl = canvas.getContext('experimental-webgl')
 
 var app = new App()
-app.render()
+
+function renderLoop() {
+    app.render()
+    app.update()
+	window.setTimeout(renderLoop, 1000 / 60)
+}
+
+renderLoop()

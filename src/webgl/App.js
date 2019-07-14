@@ -53,12 +53,19 @@ class App {
         gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, 0, colors)
         gl.enableVertexAttribArray(colorLocation)
 
-        var transformLocation = gl.getUniformLocation(program, 'u_transform')
+        this.transformLocation = gl.getUniformLocation(program, 'u_transform')
 
-        var rotateMat = Utils.rotationMatrix(0, 0, 1, Math.PI / 2)
-        gl.uniformMatrix4fv(transformLocation, false, rotateMat)
+        this.alpha = 0
 
         gl.clearColor(0, 0, 0, 1)
+    }
+
+    update() {
+        this.alpha += Math.PI / 180;
+        (this.alpha >= Math.PI * 2) && (this.alpha -= Math.PI * 2);
+        var rotateMat = Utils.rotationMatrix(0, 0, 1, this.alpha)
+        gl.uniformMatrix4fv(this.transformLocation, false, rotateMat)
+
     }
 
     render() {
