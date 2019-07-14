@@ -55,7 +55,7 @@ class App {
 
         var transformLocation = gl.getUniformLocation(program, 'u_transform')
 
-        var rotateMat = Utils.rotateZMatrix(Math.PI / 2)
+        var rotateMat = Utils.rotationMatrix(0, 0, 1, Math.PI / 2)
         gl.uniformMatrix4fv(transformLocation, false, rotateMat)
 
         gl.clearColor(0, 0, 0, 1)
