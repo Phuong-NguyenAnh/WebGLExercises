@@ -3,13 +3,14 @@ import Utils from './Utils';
 class App {
     constructor() {
         var vsSource =
+            'uniform mat4 u_transform;' +
             'attribute vec2 a_position;' +
             'attribute vec4 a_color;' +
             'varying vec4 v_color;' +
             'void main()' +
             '{' +
             '    v_color = a_color;' +
-            '    gl_Position = vec4(a_position, 0.0, 1.0);' +
+            '    gl_Position = u_transform * vec4(a_position, 0.0, 1.0);' +
             '}'
         var vs = Utils.compileShader(vsSource, gl.VERTEX_SHADER)
 
@@ -51,6 +52,11 @@ class App {
         var colorLocation = gl.getAttribLocation(program, 'a_color')
         gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, 0, colors)
         gl.enableVertexAttribArray(colorLocation)
+
+        var transformLocation = gl.getUniformLocation(program, 'u_transform')
+
+        var rotateMat = Utils.rotateZMatrix(Math.PI / 2)
+        gl.uniformMatrix4fv(transformLocation, false, rotateMat)
 
         gl.clearColor(0, 0, 0, 1)
     }
