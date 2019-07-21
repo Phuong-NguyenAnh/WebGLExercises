@@ -48,7 +48,7 @@ export class Matrix {
         return result;
     }
     static identity() {
-        let a = Matrix();
+        let a = new Matrix();
         for (let row = 0; row < 4; ++row)
             for (let col = 0; col < 4; ++col) {
                 let value = row == col ? 1.0 : 0.0;

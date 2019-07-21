@@ -35,6 +35,9 @@ const indices = [
     1, 6, 2, 1, 5, 6
 ]
 
+const ROTATE_SPEED = 3
+const TRANSLATE_SPEED = 0.1
+
 class App {
     constructor() {
         var vsSource =
@@ -92,12 +95,16 @@ class App {
 
         gl.clearColor(0, 0, 0, 1)
 
-        this.angle = 0
+        let h = 1.0;
+        let w = h * canvas.width / canvas.height;
+        this.projectionMatrix = Matrix.frustum(-w / 2, w / 2, -h / 2, h / 2, 1, 50)
+        this.viewMatrix = Matrix.translate(0., 0., -20)
+        this.modelMatrix = Matrix.identity()
 
         this.keyHandler = []
     }
 
-    keyEvent(event) {
+    keyEvent = (event) => {
         switch (event.type) {
             case 'keydown':
                 this.onKeyDown(event.key)
@@ -112,21 +119,6 @@ class App {
         if (!this.keyHandler.find(k => { return k === key })) {
             this.keyHandler.push(key)
         }
-        console.log(this.keyHandler)
-        // switch (key) {
-        //     case 'w':
-        //     case 'ArrowUp':
-        //         break
-        //     case 'a':
-        //     case 'ArrowLeft':
-        //         break
-        //     case 'd':
-        //     case 'ArrowRight':
-        //         break
-        //     case 's':
-        //     case 'ArrowDown':
-        //         break
-        // }
     }
 
     onKeyUp(key) {
@@ -134,26 +126,48 @@ class App {
         if (index != -1) {
             this.keyHandler.splice(index, 1)
         }
-        console.log(this.keyHandler)
     }
 
     update() {
-        this.angle += 1;
-        (this.angle >= 360) && (this.angle -= 360)
-
-        let h = 1.0;
-        let w = h * canvas.width / canvas.height;
-        let projectionMatrix = Matrix.frustum(-w / 2, w / 2, -h / 2, h / 2, 1, 50)
-        let viewMatrix = Matrix.translate(0., 0., -4.)
-        let modelMatrix = Matrix.rotation(this.angle, 1, 1, 0)
-        gl.uniformMatrix4fv(this.projectionMatrixLocation, false, projectionMatrix.data())
-        gl.uniformMatrix4fv(this.viewMatrixLocation, false, viewMatrix.data())
-        gl.uniformMatrix4fv(this.modelMatrixLocation, false, modelMatrix.data())
+        this.keyHandler.forEach(key => {
+            switch (key) {
+                case 'w':
+                    this.modelMatrix = this.modelMatrix.multipleTo(Matrix.rotation(ROTATE_SPEED, 1, 0, 0))
+                    break
+                case 's':
+                    this.modelMatrix = this.modelMatrix.multipleTo(Matrix.rotation(-ROTATE_SPEED, 1, 0, 0))
+                    break
+                case 'a':
+                    this.modelMatrix = this.modelMatrix.multipleTo(Matrix.rotation(ROTATE_SPEED, 0, 1, 0))
+                    break
+                case 'd':
+                    this.modelMatrix = this.modelMatrix.multipleTo(Matrix.rotation(-ROTATE_SPEED, 0, 1, 0))
+                    break
+                case 'ArrowUp':
+                    this.modelMatrix = this.modelMatrix.multipleTo(Matrix.translate(0, TRANSLATE_SPEED, 0))
+                    break
+                case 'ArrowDown':
+                    this.modelMatrix = this.modelMatrix.multipleTo(Matrix.translate(0, -TRANSLATE_SPEED, 0))
+                    break
+                case 'ArrowLeft':
+                    this.modelMatrix = this.modelMatrix.multipleTo(Matrix.translate(-TRANSLATE_SPEED, 0, 0))
+                    break
+                case 'ArrowRight':
+                    this.modelMatrix = this.modelMatrix.multipleTo(Matrix.translate(TRANSLATE_SPEED, 0, 0))
+                    break
+                case ' ':
+                    this.modelMatrix = Matrix.identity()
+                    break;
+            }
+        })
     }
 
     render() {
         gl.clear(gl.COLOR_BUFFER_BIT)
         gl.viewport(0, 0, canvas.width, canvas.height)
+        gl.uniformMatrix4fv(this.projectionMatrixLocation, false, this.projectionMatrix.data())
+        gl.uniformMatrix4fv(this.viewMatrixLocation, false, this.viewMatrix.data())
+        gl.uniformMatrix4fv(this.modelMatrixLocation, false, this.modelMatrix.data())
         gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)
     }
 }

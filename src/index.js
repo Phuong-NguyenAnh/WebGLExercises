@@ -17,8 +17,8 @@ var gl = canvas.getContext('experimental-webgl')
 
 var app = new App()
 
-window.addEventListener('keydown', app.keyEvent, false)
-window.addEventListener('keyup', app.keyEvent, false)
+window.addEventListener('keydown', app.keyEvent)
+window.addEventListener('keyup', app.keyEvent)
 
 function renderLoop() {
     app.render()
