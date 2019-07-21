@@ -1,25 +1,62 @@
-import Utils from './Utils';
+import Utils from './Utils.js';
+import { canvas, gl } from '../index.js'
+import { Matrix } from '../glmath.js'
+
+const positions = [
+    -1, 1, 1,
+    -1, -1, 1,
+    1, -1, 1,
+    1, 1, 1,
+
+    -1, 1, -1,
+    -1, -1, -1,
+    1, -1, -1,
+    1, 1, -1,
+]
+
+const colors = [
+    0, 0, 0,
+    0, 0, 1.0,
+    0, 1.0, 0,
+    0, 1.0, 1,
+
+    1, 0, 0,
+    1, 0, 1,
+    1, 1, 0,
+    1, 1, 1
+]
+
+const indices = [
+    0, 1, 2, 0, 2, 3,
+    4, 6, 5, 4, 7, 6,
+    0, 5, 1, 0, 4, 5,
+    3, 2, 6, 3, 6, 7,
+    0, 3, 4, 4, 3, 7,
+    1, 6, 2, 1, 5, 6
+]
 
 class App {
     constructor() {
         var vsSource =
-            'uniform mat4 u_transform;' +
-            'attribute vec2 a_position;' +
-            'attribute vec4 a_color;' +
-            'varying vec4 v_color;' +
+            'uniform mat4 uModelMatrix;' +
+            'uniform mat4 uViewMatrix;' +
+            'uniform mat4 uProjectionMatrix;' +
+            'attribute vec3 aPosition;' +
+            'attribute vec3 aColor;' +
+            'varying vec3 vColor;' +
             'void main()' +
             '{' +
-            '    v_color = a_color;' +
-            '    gl_Position = u_transform * vec4(a_position, 0.0, 1.0);' +
+            '    vColor = aColor;' +
+            '    gl_Position = uModelMatrix * vec4(aPosition, 1.0);' +
             '}'
         var vs = Utils.compileShader(vsSource, gl.VERTEX_SHADER)
 
         var fsSource =
             'precision mediump float;' +
-            'varying vec4 v_color;' +
+            'varying vec3 vColor;' +
             'void main()' +
             '{' +
-            '   gl_FragColor = v_color;' +
+            '   gl_FragColor = vec4(vColor, 1.0);' +
             '}'
         var fs = Utils.compileShader(fsSource, gl.FRAGMENT_SHADER)
 
@@ -27,51 +64,54 @@ class App {
 
         gl.useProgram(program)
 
-        var positions = [
-            0., .5,
-            -.5, -.5,
-            .5, -.5
-        ]
         this.position_buffer = gl.createBuffer()
         gl.bindBuffer(gl.ARRAY_BUFFER, this.position_buffer)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
 
-        var positionLocation = gl.getAttribLocation(program, 'a_position')
-        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, positions)
+        var positionLocation = gl.getAttribLocation(program, 'aPosition')
+        gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, positions)
         gl.enableVertexAttribArray(positionLocation)
 
-        var colors = [
-            1., 0., 0., 1.,
-            0., 1., 0., 1.,
-            0., 0., 1., 1.,
-        ]
         this.color_buffer = gl.createBuffer()
         gl.bindBuffer(gl.ARRAY_BUFFER, this.color_buffer)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW)
 
-        var colorLocation = gl.getAttribLocation(program, 'a_color')
-        gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, 0, colors)
+        var colorLocation = gl.getAttribLocation(program, 'aColor')
+        gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, colors)
         gl.enableVertexAttribArray(colorLocation)
 
-        this.transformLocation = gl.getUniformLocation(program, 'u_transform')
+        this.indicesBuffer = gl.createBuffer()
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer)
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 
-        this.angle = 0
+        this.modelMatrixLocation = gl.getUniformLocation(program, 'uModelMatrix')
+        this.viewMatrixLocation = gl.getUniformLocation(program, 'uViewMatrix')
+        this.projectionMatrix = gl.getUniformLocation(program, 'uProjectionMatrix')
+
+        gl.enable(gl.DEPTH_TEST)
 
         gl.clearColor(0, 0, 0, 1)
+
+        this.angle = 0
     }
 
     update() {
-        this.angle += Math.PI / 180;
-        (this.angle >= Math.PI * 2) && (this.angle -= Math.PI * 2);
-        var rotateMat = Utils.rotationMatrix(0, 0, 1, this.angle)
-        gl.uniformMatrix4fv(this.transformLocation, false, rotateMat)
+        this.angle += 1;
+        (this.angle >= 360) && (this.angle -= 360)
 
+        let h = 1.0;
+        let w = h * canvas.width / canvas.height;
+        let projectionMatrix = Matrix.frustum(-w / 2, w / 2, -h / 2, h / 2, 1, 50)
+        let translateMatrix = Matrix.translate(0., 0., -4.)
+        let modelMatrix = projectionMatrix.multipleTo(translateMatrix)
+        modelMatrix = modelMatrix.multipleTo(Matrix.rotation(this.angle, 1, 1, 0))
+        gl.uniformMatrix4fv(this.modelMatrixLocation, false, modelMatrix.data())
     }
 
     render() {
         gl.clear(gl.COLOR_BUFFER_BIT)
         gl.viewport(0, 0, canvas.width, canvas.height)
-        gl.drawArrays(gl.TRIANGLES, 0, 3)
+        gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)
     }
 }
 

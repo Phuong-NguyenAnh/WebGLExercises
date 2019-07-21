@@ -1,4 +1,4 @@
-import App from './webgl/App'
+import App from './webgl/App.js'
 
 
 function createCanvas() {
@@ -12,15 +12,17 @@ function createCanvas() {
 
 document.body.appendChild(createCanvas());
 
-global.canvas = document.getElementById('glCanvas')
-global.gl = canvas.getContext('experimental-webgl')
+var canvas = document.getElementById('glCanvas')
+var gl = canvas.getContext('experimental-webgl')
 
 var app = new App()
 
 function renderLoop() {
     app.render()
     app.update()
-	window.setTimeout(renderLoop, 1000 / 60)
+    window.setTimeout(renderLoop, 1000 / 60)
 }
 
 renderLoop()
+
+export { canvas, gl }

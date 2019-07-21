@@ -1,13 +1,7 @@
-WebGL Exercises
--
----
-rework with js from C++
+Test [http-server](https://www.npmjs.com/package/http-server) module
 
-3dExercises: https://github.com/Phuong-NguyenAnh/3dExercises.git
+run `npm i http-server -g` to install globaly
 
----
-How to check:
+run `http-server` command
 
-1. at root project with package.json, run `nmp i` with cmd to install necessary webpack package
-2. after installation success, run `npm run build` with cmd to make `main.js` file for `./dist/index.html`
-3. open `./dist/index.html` by your web browser which support WebGL
+open web-browser with url http://127.0.0.1:8080/index or   http://localhost:8080/index as default

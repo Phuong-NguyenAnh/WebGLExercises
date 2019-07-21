@@ -1,3 +1,5 @@
+import {gl} from '../index.js'
+
 export default class Utils {
     static compileShader(src, type) {
         var shader = gl.createShader(type)
