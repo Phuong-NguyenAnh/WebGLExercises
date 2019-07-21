@@ -1,6 +1,6 @@
 import Utils from './Utils.js';
-import { canvas, gl } from '../index.js'
-import { Matrix } from '../glmath.js'
+import { canvas, gl } from './index.js'
+import { Matrix } from './glmath.js'
 
 const positions = [
     -1, 1, 1,
@@ -47,7 +47,7 @@ class App {
             'void main()' +
             '{' +
             '    vColor = aColor;' +
-            '    gl_Position = uModelMatrix * vec4(aPosition, 1.0);' +
+            '    gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);' +
             '}'
         var vs = Utils.compileShader(vsSource, gl.VERTEX_SHADER)
 
@@ -86,13 +86,55 @@ class App {
 
         this.modelMatrixLocation = gl.getUniformLocation(program, 'uModelMatrix')
         this.viewMatrixLocation = gl.getUniformLocation(program, 'uViewMatrix')
-        this.projectionMatrix = gl.getUniformLocation(program, 'uProjectionMatrix')
+        this.projectionMatrixLocation = gl.getUniformLocation(program, 'uProjectionMatrix')
 
         gl.enable(gl.DEPTH_TEST)
 
         gl.clearColor(0, 0, 0, 1)
 
         this.angle = 0
+
+        this.keyHandler = []
+    }
+
+    keyEvent(event) {
+        switch (event.type) {
+            case 'keydown':
+                this.onKeyDown(event.key)
+                break;
+            case 'keyup':
+                this.onKeyUp(event.key)
+                break;
+        }
+    }
+
+    onKeyDown(key) {
+        if (!this.keyHandler.find(k => { return k === key })) {
+            this.keyHandler.push(key)
+        }
+        console.log(this.keyHandler)
+        // switch (key) {
+        //     case 'w':
+        //     case 'ArrowUp':
+        //         break
+        //     case 'a':
+        //     case 'ArrowLeft':
+        //         break
+        //     case 'd':
+        //     case 'ArrowRight':
+        //         break
+        //     case 's':
+        //     case 'ArrowDown':
+        //         break
+        // }
+    }
+
+    onKeyUp(key) {
+        let index = this.keyHandler.findIndex(k => { return k === key })
+        if (index != -1) {
+            this.keyHandler.splice(index, 1)
+        }
+        console.log(this.keyHandler)
     }
 
     update() {
@@ -102,9 +144,10 @@ class App {
         let h = 1.0;
         let w = h * canvas.width / canvas.height;
         let projectionMatrix = Matrix.frustum(-w / 2, w / 2, -h / 2, h / 2, 1, 50)
-        let translateMatrix = Matrix.translate(0., 0., -4.)
-        let modelMatrix = projectionMatrix.multipleTo(translateMatrix)
-        modelMatrix = modelMatrix.multipleTo(Matrix.rotation(this.angle, 1, 1, 0))
+        let viewMatrix = Matrix.translate(0., 0., -4.)
+        let modelMatrix = Matrix.rotation(this.angle, 1, 1, 0)
+        gl.uniformMatrix4fv(this.projectionMatrixLocation, false, projectionMatrix.data())
+        gl.uniformMatrix4fv(this.viewMatrixLocation, false, viewMatrix.data())
         gl.uniformMatrix4fv(this.modelMatrixLocation, false, modelMatrix.data())
     }
 

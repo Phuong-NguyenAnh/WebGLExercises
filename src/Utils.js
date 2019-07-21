@@ -1,4 +1,4 @@
-import {gl} from '../index.js'
+import {gl} from './index.js'
 
 export default class Utils {
     static compileShader(src, type) {
