@@ -1,6 +1,7 @@
 import Utils from './Utils.js';
 import { canvas, gl } from './index.js'
 import { Matrix } from './glmath.js'
+// import { positions, texCoords, indicesSize, indices } from './Defines.js'
 
 const positions = [
     -1, 1, 1,
@@ -37,71 +38,59 @@ const indices = [
 
 const ROTATE_SPEED = 3
 const TRANSLATE_SPEED = 0.1
-
 class App {
     constructor() {
-        var vsSource =
-            'uniform mat4 uModelMatrix;' +
-            'uniform mat4 uViewMatrix;' +
-            'uniform mat4 uProjectionMatrix;' +
-            'attribute vec3 aPosition;' +
-            'attribute vec3 aColor;' +
-            'varying vec3 vColor;' +
-            'void main()' +
-            '{' +
-            '    vColor = aColor;' +
-            '    gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);' +
-            '}'
-        var vs = Utils.compileShader(vsSource, gl.VERTEX_SHADER)
+        this.initDone = false
+        Utils.readFile('../data/vs.glsl').then(vs => {
+            return { vs: Utils.compileShader(vs, gl.VERTEX_SHADER) }
+        }).then(resolve => {
+            return Utils.readFile('../data/fs.glsl').then(fs => {
+                return { ...resolve, fs: Utils.compileShader(fs, gl.FRAGMENT_SHADER) }
+            })
+        }).then((resolve) => {
+            let program = Utils.linkProgram(resolve.vs, resolve.fs)
+            gl.useProgram(program)
+            return program
+        }).then(program => {
+            let position_buffer = gl.createBuffer()
+            gl.bindBuffer(gl.ARRAY_BUFFER, position_buffer)
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
 
-        var fsSource =
-            'precision mediump float;' +
-            'varying vec3 vColor;' +
-            'void main()' +
-            '{' +
-            '   gl_FragColor = vec4(vColor, 1.0);' +
-            '}'
-        var fs = Utils.compileShader(fsSource, gl.FRAGMENT_SHADER)
+            var positionLocation = gl.getAttribLocation(program, 'aPosition')
+            gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, positions)
+            gl.enableVertexAttribArray(positionLocation)
 
-        var program = Utils.linkProgram(vs, fs)
+            let color_buffer = gl.createBuffer()
+            gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer)
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW)
 
-        gl.useProgram(program)
+            var colorLocation = gl.getAttribLocation(program, 'aColor')
+            gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, colors)
+            gl.enableVertexAttribArray(colorLocation)
 
-        this.position_buffer = gl.createBuffer()
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.position_buffer)
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
+            let indicesBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 
-        var positionLocation = gl.getAttribLocation(program, 'aPosition')
-        gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, positions)
-        gl.enableVertexAttribArray(positionLocation)
+            this.modelMatrixLocation = gl.getUniformLocation(program, 'uModelMatrix')
+            this.viewMatrixLocation = gl.getUniformLocation(program, 'uViewMatrix')
+            this.projectionMatrixLocation = gl.getUniformLocation(program, 'uProjectionMatrix')
 
-        this.color_buffer = gl.createBuffer()
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.color_buffer)
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW)
+            gl.enable(gl.DEPTH_TEST)
 
-        var colorLocation = gl.getAttribLocation(program, 'aColor')
-        gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, colors)
-        gl.enableVertexAttribArray(colorLocation)
+            gl.clearColor(0, 0, 0, 1)
 
-        this.indicesBuffer = gl.createBuffer()
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer)
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+            let h = 1.0;
+            let w = h * canvas.width / canvas.height;
+            this.projectionMatrix = Matrix.frustum(-w / 2, w / 2, -h / 2, h / 2, 1, 50)
+            this.viewMatrix = Matrix.translate(0., 0., -20)
+            this.modelMatrix = Matrix.identity()
 
-        this.modelMatrixLocation = gl.getUniformLocation(program, 'uModelMatrix')
-        this.viewMatrixLocation = gl.getUniformLocation(program, 'uViewMatrix')
-        this.projectionMatrixLocation = gl.getUniformLocation(program, 'uProjectionMatrix')
-
-        gl.enable(gl.DEPTH_TEST)
-
-        gl.clearColor(0, 0, 0, 1)
-
-        let h = 1.0;
-        let w = h * canvas.width / canvas.height;
-        this.projectionMatrix = Matrix.frustum(-w / 2, w / 2, -h / 2, h / 2, 1, 50)
-        this.viewMatrix = Matrix.translate(0., 0., -20)
-        this.modelMatrix = Matrix.identity()
-
-        this.keyHandler = []
+            gl.viewport(0, 0, canvas.width, canvas.height)
+        }).then(() => {
+            this.keyHandler = []
+            this.initDone = true
+        })
     }
 
     keyEvent = (event) => {
@@ -163,8 +152,7 @@ class App {
     }
 
     render() {
-        gl.clear(gl.COLOR_BUFFER_BIT)
-        gl.viewport(0, 0, canvas.width, canvas.height)
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
         gl.uniformMatrix4fv(this.projectionMatrixLocation, false, this.projectionMatrix.data())
         gl.uniformMatrix4fv(this.viewMatrixLocation, false, this.viewMatrix.data())
         gl.uniformMatrix4fv(this.modelMatrixLocation, false, this.modelMatrix.data())

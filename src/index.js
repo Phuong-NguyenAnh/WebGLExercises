@@ -11,7 +11,6 @@ function createCanvas() {
 }
 
 document.body.appendChild(createCanvas());
-
 var canvas = document.getElementById('glCanvas')
 var gl = canvas.getContext('experimental-webgl')
 
@@ -20,9 +19,15 @@ var app = new App()
 window.addEventListener('keydown', app.keyEvent)
 window.addEventListener('keyup', app.keyEvent)
 
+document.getElementsByTagName("body")[0].onresize = app.onResize;
+
 function renderLoop() {
-    app.render()
-    app.update()
+    if (app.initDone) {
+        app.render()
+        app.update()
+    } else {
+        // show loading
+    }
     window.setTimeout(renderLoop, 1000 / 60)
 }
 
