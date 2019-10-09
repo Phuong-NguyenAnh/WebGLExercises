@@ -1,6 +1,6 @@
 export class Vector {
-    v = []
     constructor(x, y, z, w) {
+        this.v = []
         this.v[0] = x
         this.v[1] = y
         this.v[2] = z
@@ -14,8 +14,8 @@ export class Vector {
 }
 
 export class Matrix {
-    m = []
     constructor() {
+        this.m = []
         for (let i = 0; i < 16; i++) {
             this.m[i] = 0.0;
         }

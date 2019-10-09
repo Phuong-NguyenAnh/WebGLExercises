@@ -93,7 +93,7 @@ class App {
         })
     }
 
-    keyEvent = (event) => {
+    keyEvent(event) {
         switch (event.type) {
             case 'keydown':
                 this.onKeyDown(event.key)
@@ -117,7 +117,16 @@ class App {
         }
     }
 
+    onTouchMove(ev) {
+        const { movementX, movementY, buttons } = ev
+        if (buttons === 1) {
+            this.modelMatrix = this.modelMatrix.multipleTo(Matrix.rotation(ROTATE_SPEED, movementX, movementY, 0))
+        }
+    }
+
     update() {
+        this.modelMatrix = this.modelMatrix.multipleTo(Matrix.rotation(0.5, 1, 1, 0))
+
         this.keyHandler.forEach(key => {
             switch (key) {
                 case 'w':

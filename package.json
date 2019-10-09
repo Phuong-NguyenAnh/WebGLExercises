@@ -1,0 +1,28 @@
+{
+  "name": "webgl_exercises",
+  "version": "1.0.0",
+  "description": "Test [http-server](https://www.npmjs.com/package/http-server) module",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Phuong-NguyenAnh/WebGLExercises.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Phuong-NguyenAnh/WebGLExercises/issues"
+  },
+  "homepage": "https://github.com/Phuong-NguyenAnh/WebGLExercises#readme",
+  "devDependencies": {
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9"
+  },
+  "dependencies": {
+    "lodash": "^4.17.15"
+  }
+}

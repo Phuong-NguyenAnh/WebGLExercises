@@ -1,5 +1,6 @@
-import App from './App.js'
+import _ from 'lodash'
 
+import App from './App.js'
 
 function createCanvas() {
     const canvas = document.createElement('canvas')
@@ -16,8 +17,11 @@ var gl = canvas.getContext('experimental-webgl')
 
 var app = new App()
 
-window.addEventListener('keydown', app.keyEvent)
-window.addEventListener('keyup', app.keyEvent)
+window.addEventListener('keydown', (event)=>{app.keyEvent(event)})
+window.addEventListener('keyup', (event)=>{app.keyEvent(event)})
+
+document.addEventListener("pointermove", (ev)=>{app.onTouchMove(ev)})
+document.addEventListener("touchmove", (ev)=>{app.onTouchMove(ev)})
 
 document.getElementsByTagName("body")[0].onresize = app.onResize;
 
